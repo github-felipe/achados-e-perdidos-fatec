@@ -47,6 +47,10 @@
         <form action='novoItem.php' method='post'>
             <input type='submit' value='Encontrei um item'>
         </form>
+
+        <form action='logout.php' method='get'>
+            <input type='submit' value='logout'>
+        </form>
     ";
 ?>
 
