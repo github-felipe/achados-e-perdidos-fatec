@@ -1,0 +1,293 @@
+/*
+ * style.css — Identidade visual Fatec (Achados e Perdidos)
+ *
+ * Complementa o W3.CSS com as cores institucionais e componentes do sistema.
+ * Para alterar o visual, edite apenas as variáveis em :root.
+ *
+ * Índice:
+ *   1. Variáveis de cor    → paleta institucional centralizada
+ *   2. Base da página      → fundo e cor de texto padrão
+ *   3. Layout              → sidebar fixa e área principal
+ *   4. Sidebar             → menu lateral vermelho institucional
+ *   5. Rodapé da página    → barra inferior cinza do conteúdo principal
+ *   6. Cabeçalho de página → barra superior cinza das telas internas
+ *   7. Cards               → cartões brancos com sombra suave
+ *   8. Botões              → primário (vermelho) e secundário (cinza)
+ *   9. Formulários         → campos de entrada padronizados
+ *  10. Alertas             → mensagens de feedback ao usuário
+ *  11. Tabelas             → listagens administrativas
+ *  12. Tags de status      → etiquetas coloridas (status dos itens)
+ *  13. Responsividade      → barra superior e sidebar recolhível no mobile
+ */
+
+
+/* ── 1. Variáveis de cor ───────────────────────────────────────────────────── */
+
+:root {
+    --fatec-vermelho:       #B5121B;
+    --fatec-vermelho-hover: #9a0f17;
+    --fatec-cinza:          #4A555C;
+    --fatec-cinza-hover:    #3d464c;
+    --fatec-fundo:          #F5F5F5;
+    --fatec-texto:          #212121;
+    --fatec-branco:         #FFFFFF;
+    --fatec-sombra:         0 2px 8px rgba(0, 0, 0, 0.08);
+    --fatec-sidebar-largura: 250px;
+}
+
+
+/* ── 2. Base da página ─────────────────────────────────────────────────────── */
+
+.app-body {
+    background-color: var(--fatec-fundo) !important;
+    color: var(--fatec-texto);
+}
+
+
+/* ── 3. Layout ─────────────────────────────────────────────────────────────── */
+
+.app-sidebar {
+    width: var(--fatec-sidebar-largura);
+    z-index: 200;
+}
+
+.app-main {
+    margin-left: var(--fatec-sidebar-largura);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-page-content {
+    flex: 1;
+}
+
+
+/* ── 4. Sidebar ────────────────────────────────────────────────────────────── */
+
+.fatec-sidebar {
+    background-color: var(--fatec-vermelho) !important;
+    color: var(--fatec-branco);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.fatec-sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.fatec-sidebar .fatec-sidebar-brand {
+    color: var(--fatec-branco);
+}
+
+.fatec-sidebar .fatec-sidebar-user {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    color: var(--fatec-branco);
+}
+
+.fatec-nav-link {
+    color: var(--fatec-branco) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    text-align: left;
+}
+
+.fatec-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--fatec-branco) !important;
+}
+
+.fatec-nav-link--active {
+    background-color: var(--fatec-branco) !important;
+    color: var(--fatec-vermelho) !important;
+    font-weight: bold;
+    border-left: 4px solid var(--fatec-cinza);
+}
+
+.fatec-nav-link--active:hover {
+    background-color: var(--fatec-branco) !important;
+    color: var(--fatec-vermelho) !important;
+}
+
+.fatec-sidebar-logout {
+    border-top: 1px solid rgba(255, 255, 255, 0.25) !important;
+    margin-top: auto;
+}
+
+
+/* ── 5. Rodapé da página ───────────────────────────────────────────────────── */
+
+.app-page-footer {
+    background-color: var(--fatec-cinza);
+    color: var(--fatec-branco);
+}
+
+
+/* ── 6. Cabeçalho de página ────────────────────────────────────────────────── */
+
+.app-page-header {
+    background-color: var(--fatec-cinza) !important;
+    color: var(--fatec-branco);
+}
+
+
+/* ── 7. Cards ──────────────────────────────────────────────────────────────── */
+
+.app-card {
+    background-color: var(--fatec-branco);
+    box-shadow: var(--fatec-sombra);
+    border-radius: 4px;
+}
+
+.app-card-value {
+    color: var(--fatec-vermelho);
+    font-size: 2.5rem;
+}
+
+.app-card-label {
+    color: var(--fatec-cinza);
+}
+
+
+/* ── 8. Botões ─────────────────────────────────────────────────────────────── */
+
+.app-btn-primary {
+    background-color: var(--fatec-vermelho) !important;
+    color: var(--fatec-branco) !important;
+}
+
+.app-btn-primary:hover {
+    background-color: var(--fatec-vermelho-hover) !important;
+    color: var(--fatec-branco) !important;
+}
+
+.app-btn-secondary {
+    background-color: var(--fatec-cinza) !important;
+    color: var(--fatec-branco) !important;
+}
+
+.app-btn-secondary:hover {
+    background-color: var(--fatec-cinza-hover) !important;
+    color: var(--fatec-branco) !important;
+}
+
+
+/* ── 9. Formulários ────────────────────────────────────────────────────────── */
+
+.app-input:focus {
+    border-color: var(--fatec-vermelho) !important;
+    outline: none;
+}
+
+.app-label {
+    color: var(--fatec-cinza);
+}
+
+
+/* ── 10. Alertas ───────────────────────────────────────────────────────────── */
+
+.app-alert-error {
+    background-color: #fde8e9;
+    border: 1px solid var(--fatec-vermelho);
+    color: var(--fatec-vermelho);
+    padding: 12px 16px;
+    border-radius: 4px;
+}
+
+.app-alert-success {
+    background-color: #e8f5e9;
+    border: 1px solid #2e7d32;
+    color: #2e7d32;
+    padding: 12px 16px;
+    border-radius: 4px;
+}
+
+/* Pequeno utilitário para remover a margem inferior padrão de parágrafos */
+.w3-margin-bottom-0 {
+    margin-bottom: 0 !important;
+}
+
+
+/* Tela de login: centraliza o card na altura total da janela */
+.app-login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-login-card {
+    width: 100%;
+    max-width: 380px;
+}
+
+.app-login-header {
+    border-radius: 4px 4px 0 0;
+}
+
+
+/* ── 11. Tabelas ───────────────────────────────────────────────────────────── */
+
+/* Cabeçalho das tabelas administrativas no cinza institucional */
+.fatec-table th {
+    background-color: var(--fatec-cinza);
+    color: var(--fatec-branco);
+}
+
+/* Destaque suave na linha sob o cursor */
+.fatec-table tr:hover {
+    background-color: #fafafa;
+}
+
+
+/* ── 12. Tags de status ────────────────────────────────────────────────────── */
+
+/* Etiqueta do cargo exibida na sidebar */
+.fatec-tag-cargo {
+    background-color: var(--fatec-cinza) !important;
+    color: var(--fatec-branco) !important;
+}
+
+/* Cores por status do item */
+.fatec-status-disponivel {
+    background-color: #2e7d32 !important; /* verde — pronto para retirada */
+    color: var(--fatec-branco) !important;
+}
+
+.fatec-status-reservado {
+    background-color: #f9a825 !important; /* amarelo — aguardando dono */
+    color: var(--fatec-texto) !important;
+}
+
+.fatec-status-entregue {
+    background-color: var(--fatec-cinza) !important; /* cinza — já devolvido */
+    color: var(--fatec-branco) !important;
+}
+
+
+/* ── 13. Responsividade ────────────────────────────────────────────────────── */
+
+/* Barra superior com o botão de menu (somente telas pequenas) */
+.fatec-topbar {
+    background-color: var(--fatec-vermelho);
+    color: var(--fatec-branco);
+}
+
+.fatec-topbar-btn {
+    color: var(--fatec-branco) !important;
+    font-size: 1.3rem;
+}
+
+/*
+ * Em telas até 992px a sidebar fixa é escondida e o conteúdo ocupa
+ * toda a largura. O botão "☰" na barra superior reabre o menu.
+ */
+@media (max-width: 992px) {
+    .app-sidebar {
+        display: none;
+    }
+    .app-main {
+        margin-left: 0;
+    }
+}

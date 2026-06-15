@@ -1,67 +1,112 @@
 <?php
     require_once("guardinha.php");
-    restricao(999);
 
-    function getNumItensDisponiveis(){
-        
-        //Aqui será implementado a lógica de pegar o número de itens achados porém não recuperados quando tivermos o banco de dados.
-        
-        $itensAchados = 89;
-        return $itensAchados;
-    }
-    function getNumItensRecuperados(){
-    
-        //Aqui será implementado a lógica de pegar o número de itens devolvidos para o dono até hoje quando tivermos o banco de dados.
+    // Caminho até a raiz (esta página JÁ está na raiz do projeto)
+    $rootPath = '';
+    $paginaAtiva = 'dashboard';
 
-        $itensRecuperados = 210;
-        return $itensRecuperados;
-    }
+    // Dashboard é liberado para todos os níveis (0 a 3)
+    restricao(3);
 
-    //Exemplo de uso dessas funções:
-    $itensDisponiveis = getNumItensDisponiveis();
-    $itensRecuperados = getNumItensRecuperados();
+    // Carrega os dados de exemplo (serão substituídos por consultas ao banco depois)
+    require_once("components/dados_mock.php");
 
-    echo "<p>Itens encontrados mas ainda sem dono: $itensDisponiveis";
-    echo "<p>Número de itens recuperados pelo achados e perdidos: $itensRecuperados";
+    $itens    = itens_mock();
+    $usuarios = usuarios_mock();
 
-    if($_SESSION['nivel']<=1){
-        echo "
-            <form action='itens.php' method='post'>
-                <input type='submit' value='Itens'>
-            </form>
-
-            <form action='cadastroPessoas.php' method='get'>
-                <input type='submit' value='Cadastrar Pessoa'>
-            </form>
-        ";
-    }
-    echo "
-        <form action='perfil.php' method='post'>
-            <input type='submit' value='Perfil'>
-        </form>
-
-        <form action='chat.php' method='post'>
-            <input type='submit' value='Procurar item'>
-        </form>
-
-        <form action='novoItem.php' method='post'>
-            <input type='submit' value='Encontrei um item'>
-        </form>
-
-        <form action='logout.php' method='get'>
-            <input type='submit' value='logout'>
-        </form>
-    ";
+    // Calcula as estatísticas exibidas nos cards
+    $itensDisponiveis = contar_itens_por_status($itens, 'Disponível');
+    $itensEntregues   = contar_itens_por_status($itens, 'Entregue');
+    $totalItens       = count($itens);
+    $totalUsuarios    = count($usuarios);
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <?php require_once("components/head.php"); ?>
 </head>
-<body>
+<body class="app-body">
+    <?php require_once("components/navbar.php"); ?>
 
+    <div class="w3-main app-main">
+        <header class="w3-container app-page-header">
+            <h1><b>Dashboard</b></h1>
+        </header>
+
+        <div class="app-page-content w3-container w3-padding-32">
+
+            <!-- Cards com as estatísticas gerais do sistema -->
+            <div class="w3-row-padding">
+                <div class="w3-quarter w3-margin-bottom">
+                    <div class="w3-container w3-padding-16 app-card">
+                        <h4>Itens disponíveis</h4>
+                        <p class="app-card-value"><b><?= $itensDisponiveis ?></b></p>
+                        <p class="w3-small app-card-label">Encontrados e aguardando retirada</p>
+                    </div>
+                </div>
+                <div class="w3-quarter w3-margin-bottom">
+                    <div class="w3-container w3-padding-16 app-card">
+                        <h4>Itens entregues</h4>
+                        <p class="app-card-value"><b><?= $itensEntregues ?></b></p>
+                        <p class="w3-small app-card-label">Devolvidos aos donos</p>
+                    </div>
+                </div>
+                <div class="w3-quarter w3-margin-bottom">
+                    <div class="w3-container w3-padding-16 app-card">
+                        <h4>Total de itens</h4>
+                        <p class="app-card-value"><b><?= $totalItens ?></b></p>
+                        <p class="w3-small app-card-label">Cadastrados no sistema</p>
+                    </div>
+                </div>
+                <div class="w3-quarter w3-margin-bottom">
+                    <div class="w3-container w3-padding-16 app-card">
+                        <h4>Usuários</h4>
+                        <p class="app-card-value"><b><?= $totalUsuarios ?></b></p>
+                        <p class="w3-small app-card-label">Cadastrados no sistema</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela com os itens cadastrados mais recentes -->
+            <div class="w3-container w3-padding-16 app-card w3-margin-top">
+                <h4><b>Itens recentes</b></h4>
+                <div class="w3-responsive">
+                    <table class="w3-table w3-bordered w3-striped fatec-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Categoria</th>
+                                <th>Local encontrado</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($itens as $item): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($item['nome']) ?></td>
+                                    <td><?= htmlspecialchars($item['categoria']) ?></td>
+                                    <td><?= htmlspecialchars($item['local_encontrado']) ?></td>
+                                    <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['data_encontrado']))) ?></td>
+                                    <td>
+                                        <!-- A cor da etiqueta vem do helper classe_status() -->
+                                        <span class="w3-tag w3-round <?= classe_status($item['status']) ?>">
+                                            <?= htmlspecialchars($item['status']) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <?php require_once("components/footer.php"); ?>
+    </div>
 </body>
 </html>
