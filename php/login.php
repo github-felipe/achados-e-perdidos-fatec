@@ -8,7 +8,6 @@
     <?php $rootPath = ''; require_once("components/head.php"); ?>
 </head>
 <body class="app-body">
-    <!-- Tela de login centralizada vertical e horizontalmente -->
     <div class="app-login-wrapper w3-container">
         <div class="app-card app-login-card">
             <header class="w3-container w3-center app-page-header app-login-header">

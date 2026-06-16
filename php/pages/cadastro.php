@@ -57,7 +57,6 @@
 
         <div class="app-page-content w3-container w3-padding-32">
 
-            <!-- Formulário de cadastro de usuário -->
             <div class="w3-container w3-padding-16 app-card w3-margin-bottom">
                 <h4><b>Novo usuário</b></h4>
 
@@ -128,7 +127,7 @@
                 </form>
             </div>
 
-            <!-- Lista dos usuários já cadastrados -->
+           
             <div class="w3-container w3-padding-16 app-card">
                 <h4><b>Usuários cadastrados</b></h4>
                 <div class="w3-responsive">

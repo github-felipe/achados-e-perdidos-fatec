@@ -22,7 +22,7 @@
     $cargo    = $_SESSION['perfil'] ?? (isset($_SESSION['nivel']) ? nivel_label($_SESSION['nivel']) : '');
 ?>
 
-<!-- Sidebar (menu lateral fixo no desktop / recolhível no mobile) -->
+
 <nav class="w3-sidebar w3-bar-block w3-animate-left app-sidebar fatec-sidebar" id="appSidebar">
     <div class="w3-container w3-padding-16 fatec-sidebar-brand">
         <h3 class="w3-wide"><b>Achados e Perdidos</b></h3>
@@ -52,22 +52,22 @@
     </a>
 </nav>
 
-<!-- Barra superior com botão de menu (aparece apenas em telas pequenas) -->
+
 <div class="w3-bar fatec-topbar w3-hide-large">
     <button class="w3-bar-item w3-button fatec-topbar-btn" onclick="abrirMenu()">☰</button>
     <span class="w3-bar-item"><b>Achados e Perdidos</b></span>
 </div>
 
-<!-- Sobreposição escura ao abrir o menu no mobile -->
+
 <div class="w3-overlay w3-hide-large" onclick="fecharMenu()" id="appOverlay"></div>
 
 <script>
-    // Abre a sidebar no mobile, exibindo também a sobreposição escura
+ 
     function abrirMenu() {
         document.getElementById('appSidebar').style.display = 'block';
         document.getElementById('appOverlay').style.display = 'block';
     }
-    // Fecha a sidebar no mobile
+
     function fecharMenu() {
         document.getElementById('appSidebar').style.display = 'none';
         document.getElementById('appOverlay').style.display = 'none';

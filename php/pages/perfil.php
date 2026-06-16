@@ -113,8 +113,6 @@
                                    type="email" name="email"
                                    value="<?= htmlspecialchars($usuario['email']) ?>" required>
 
-                                     <!-- Telefone removido: uso do cadastro institucional -->
-
                             <button class="w3-button app-btn-primary w3-margin-top" type="submit">
                                 Salvar alterações
                             </button>
@@ -122,12 +120,10 @@
                     </div>
                 </div>
 
-                <!-- Coluna 2: alteração de senha -->
                 <div class="w3-half w3-margin-bottom">
                     <div class="w3-container w3-padding-16 app-card">
                         <h4><b>Alterar senha</b></h4>
 
-                        <!-- A nova senha será gravada com password_hash() futuramente -->
                         <form action="" method="post">
                             <input type="hidden" name="acao" value="atualizar_senha">
                             <label class="app-label"><b>Senha atual</b></label>

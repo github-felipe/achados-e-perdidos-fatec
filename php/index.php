@@ -75,6 +75,7 @@
                     <table class="w3-table w3-bordered w3-striped fatec-table">
                         <thead>
                             <tr>
+                                <th>Foto</th>
                                 <th>Item</th>
                                 <th>Categoria</th>
                                 <th>Local encontrado</th>
@@ -85,6 +86,9 @@
                         <tbody>
                             <?php foreach ($itens as $item): ?>
                                 <tr>
+                                    <td>
+                                        <?php $fotoId = $item['foto_id'] ?? 0; require('components/thumb_item.php'); ?>
+                                    </td>
                                     <td><?= htmlspecialchars($item['item']) ?></td>
                                     <td><?= htmlspecialchars($item['categoria']) ?></td>
                                     <td><?= htmlspecialchars($item['local_encontrado']) ?></td>
