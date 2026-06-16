@@ -1,41 +1,56 @@
 <?php
-    session_start();
+session_start();
 
-    // Dados enviados pelo formulário de login
-    $usuario = $_POST['txtuser'] ?? '';
-    $senha   = $_POST['txtsenha'] ?? '';
+require_once('components/banco.php');
+require_once('components/hash.php');
 
-    /*
-     * LOGIN MOCKADO (temporário).
-     *
-     * Enquanto o banco de dados não existe, usamos uma lista fixa de usuários
-     * apenas para permitir testar as telas e os diferentes níveis de acesso.
-     * Senha de teste para todos: 1234
-     *
-     * Quando o banco estiver pronto, esta lógica será substituída por:
-     *   1. SELECT do usuário com Prepared Statement.
-     *   2. Conferência da senha com password_verify($senha, $hashDoBanco).
-     */
-    $usuariosTeste = [
-        'admin'  => ['id' => 1, 'nome' => 'Administrador (Root)', 'nivel' => 0],
-        'maria'  => ['id' => 2, 'nome' => 'Maria da Direção',     'nivel' => 1],
-        'joao'   => ['id' => 3, 'nome' => 'João da Secretaria',   'nivel' => 2],
-        'carlos' => ['id' => 4, 'nome' => 'Carlos Aluno',         'nivel' => 3],
-    ];
+$usuario = trim($_POST['txtuser'] ?? '');
+$senha   = $_POST['txtsenha'] ?? '';
 
-    // Verifica se o usuário existe e se a senha de teste confere
-    if (isset($usuariosTeste[$usuario]) && $senha === '1234') {
-        $dados = $usuariosTeste[$usuario];
-        $_SESSION['id']       = $dados['id'];
-        $_SESSION['username'] = $dados['nome'];
-        $_SESSION['nivel']    = $dados['nivel'];
-        header("location: index.php");
+if ($usuario === '' || $senha === '') {
+    $_SESSION['msg'] = 'Usuário e/ou senha inválido!';
+    header('location: login.php');
+    exit;
+}
+
+$con = conectar_banco();
+
+// Busca usuário por email OU nome e traz o nível real do cadastro
+$sql = "
+    SELECT u.id, u.nome, n.nivel, n.descricao, u.senha
+    FROM users u
+    INNER JOIN niveis n ON n.id = u.nivel_id
+    WHERE (u.email = ? OR u.nome = ?)
+    LIMIT 1
+";
+$stmt = mysqli_stmt_init($con);
+if (!mysqli_stmt_prepare($stmt, $sql)) {
+    $_SESSION['msg'] = 'Erro interno (consulta)';
+    header('location: login.php');
+    exit;
+}
+
+$senhaHash = hashsenha($senha);
+mysqli_stmt_bind_param($stmt, 'ss', $usuario, $usuario);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_store_result($stmt);
+mysqli_stmt_bind_result($stmt, $id, $nome, $nivel, $perfil, $senhaBanco);
+
+if (mysqli_stmt_num_rows($stmt) > 0) {
+    mysqli_stmt_fetch($stmt);
+    // compara hashes
+    if ($senhaBanco === $senhaHash) {
+        $_SESSION['id'] = $id;
+        $_SESSION['username'] = $nome;
+        $_SESSION['nivel'] = $nivel;
+        $_SESSION['perfil'] = $perfil;
+        header('location: index.php');
         exit;
     }
+}
 
-    // Credenciais inválidas: guarda a mensagem e volta para o login
-    $_SESSION['msg'] = "Usuário e/ou senha inválido!";
-    unset($_SESSION['nivel']);
-    header("location: login.php");
-    exit;
+$_SESSION['msg'] = 'Usuário e/ou senha inválido!';
+unset($_SESSION['nivel']);
+header('location: login.php');
+exit;
 ?>

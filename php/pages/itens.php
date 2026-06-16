@@ -4,14 +4,61 @@
     $rootPath = '../';
     $paginaAtiva = 'itens';
 
-    // Gerenciar itens é liberado para Root (0), Direção (1) e Secretaria (2)
-    restricao(2);
+    // Gerenciar itens é liberado para Root (0) e Secretaria (1)
+    restricao(1);
 
-    require_once("../components/dados_mock.php");
+    require_once("../components/banco.php");
 
-    $itens      = itens_mock();
-    $categorias = categorias_mock();
-    $status     = status_itens_mock();
+    $con = conectar_banco();
+    $itens = itens_recentes($con, 200);
+    $categorias = categorias_todas($con);
+    $locais = locais_todos($con);
+    $status = ['Disponível', 'Entregue'];
+    $mensagem = '';
+    $erro = '';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $acao = $_POST['acao'] ?? '';
+
+        if ($acao === 'editar_item') {
+            $itemId = (int) ($_POST['item_id'] ?? 0);
+            $nome = trim($_POST['nome'] ?? '');
+            $categoriaId = (int) ($_POST['categoria_id'] ?? 0);
+            $localId = (int) ($_POST['local_id'] ?? 0);
+            $data = trim($_POST['data'] ?? '');
+            $statusItem = trim($_POST['status'] ?? 'Disponível');
+            $descricao = trim($_POST['descricao'] ?? '');
+
+            if ($itemId <= 0 || $nome === '' || $categoriaId <= 0 || $localId <= 0 || $data === '') {
+                $erro = 'Preencha os dados do item.';
+            } else {
+                $resultado = atualizar_item_encontrado_db($con, $itemId, $nome, $descricao, $categoriaId, $localId, $data . ' 00:00:00', $statusItem);
+                if (!empty($resultado['ok'])) {
+                    $_SESSION['msg'] = 'Item atualizado com sucesso.';
+                    header('location: itens.php');
+                    exit;
+                }
+                $erro = $resultado['error'] ?? 'Não foi possível atualizar o item.';
+            }
+        }
+
+        if ($acao === 'registrar_devolucao') {
+            $itemId = (int) ($_POST['item_id'] ?? 0);
+            $dataRetirada = trim($_POST['data_retirada'] ?? '');
+
+            if ($itemId <= 0 || $dataRetirada === '') {
+                $erro = 'Informe o item e a data da retirada.';
+            } else {
+                $resultado = registrar_devolucao_item_db($con, $itemId, (int) ($_SESSION['id'] ?? 0), $dataRetirada . ' 00:00:00');
+                if (!empty($resultado['ok'])) {
+                    $_SESSION['msg'] = 'Devolução registrada com sucesso.';
+                    header('location: itens.php');
+                    exit;
+                }
+                $erro = $resultado['error'] ?? 'Não foi possível registrar a devolução.';
+            }
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -33,6 +80,15 @@
             <div class="w3-container w3-padding-16 app-card">
                 <h4><b>Itens cadastrados</b></h4>
 
+                <?php if (!empty($_SESSION['msg'])): ?>
+                    <div class="app-alert-success w3-margin-bottom"><?= htmlspecialchars($_SESSION['msg']) ?></div>
+                    <?php $_SESSION['msg'] = ''; ?>
+                <?php endif; ?>
+
+                <?php if ($erro !== ''): ?>
+                    <div class="app-alert-error w3-margin-bottom"><?= htmlspecialchars($erro) ?></div>
+                <?php endif; ?>
+
                 <div class="w3-responsive">
                     <table class="w3-table w3-bordered w3-striped fatec-table">
                         <thead>
@@ -48,12 +104,12 @@
                         <tbody>
                             <?php foreach ($itens as $item): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($item['nome']) ?></td>
+                                    <td><?= htmlspecialchars($item['item']) ?></td>
                                     <td><?= htmlspecialchars($item['categoria']) ?></td>
                                     <td><?= htmlspecialchars($item['local_encontrado']) ?></td>
-                                    <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['data_encontrado']))) ?></td>
+                                    <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['data_cadastro']))) ?></td>
                                     <td>
-                                        <span class="w3-tag w3-round <?= classe_status($item['status']) ?>">
+                                        <span class="w3-tag w3-round <?= $item['status'] === 'Disponível' ? 'fatec-status-disponivel' : 'fatec-status-entregue' ?>">
                                             <?= htmlspecialchars($item['status']) ?>
                                         </span>
                                     </td>
@@ -64,26 +120,27 @@
                                         -->
                                         <button class="w3-button w3-small app-btn-secondary"
                                                 onclick="abrirEditar(this)"
-                                                data-nome="<?= htmlspecialchars($item['nome']) ?>"
-                                                data-categoria="<?= htmlspecialchars($item['categoria']) ?>"
-                                                data-local="<?= htmlspecialchars($item['local_encontrado']) ?>"
-                                                data-data="<?= htmlspecialchars($item['data_encontrado']) ?>"
+                                            data-item-id="<?= (int) $item['id'] ?>"
+                                                data-nome="<?= htmlspecialchars($item['item']) ?>"
+                                            data-categoria-id="<?= (int) ($item['categoria_id'] ?? 0) ?>"
+                                                data-local-id="<?= (int) ($item['local_id'] ?? 0) ?>"
+                                                data-data="<?= htmlspecialchars($item['data_cadastro']) ?>"
                                                 data-status="<?= htmlspecialchars($item['status']) ?>"
-                                                data-descricao="<?= htmlspecialchars($item['descricao']) ?>">
+                                                data-descricao="<?= htmlspecialchars($item['item']) ?>">
                                             Editar
                                         </button>
 
                                         <?php if ($item['status'] !== 'Entregue'): ?>
                                             <button class="w3-button w3-small app-btn-primary"
                                                     onclick="abrirDevolucao(this)"
-                                                    data-nome="<?= htmlspecialchars($item['nome']) ?>">
+                                                    data-nome="<?= htmlspecialchars($item['item']) ?>">
                                                 Devolução
                                             </button>
                                         <?php endif; ?>
 
                                         <!-- Exclusão pede confirmação antes (mockado) -->
                                         <button class="w3-button w3-small w3-red"
-                                                onclick="confirmarExclusao('<?= htmlspecialchars($item['nome'], ENT_QUOTES) ?>')">
+                                                onclick="confirmarExclusao('<?= htmlspecialchars($item['item'], ENT_QUOTES) ?>')">
                                             Excluir
                                         </button>
                                     </td>
@@ -108,19 +165,25 @@
             </header>
 
             <!-- A atualização será feita com Prepared Statement futuramente -->
-            <form class="w3-container w3-padding-16" action="#" method="post">
+            <form class="w3-container w3-padding-16" action="" method="post">
+                <input type="hidden" name="acao" value="editar_item">
+                <input type="hidden" name="item_id" id="editItemId">
                 <label class="app-label"><b>Nome do objeto</b></label>
                 <input class="w3-input w3-border w3-margin-bottom app-input" type="text" name="nome" id="editNome" required>
 
                 <label class="app-label"><b>Categoria</b></label>
-                <select class="w3-select w3-border w3-margin-bottom app-input" name="categoria" id="editCategoria">
+                <select class="w3-select w3-border w3-margin-bottom app-input" name="categoria_id" id="editCategoria">
                     <?php foreach ($categorias as $cat): ?>
-                        <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
+                        <option value="<?= (int) $cat['id'] ?>"><?= htmlspecialchars($cat['descricao']) ?></option>
                     <?php endforeach; ?>
                 </select>
 
                 <label class="app-label"><b>Local encontrado</b></label>
-                <input class="w3-input w3-border w3-margin-bottom app-input" type="text" name="local" id="editLocal" required>
+                <select class="w3-select w3-border w3-margin-bottom app-input" name="local_id" id="editLocal" required>
+                    <?php foreach ($locais as $local): ?>
+                        <option value="<?= (int) $local['id'] ?>"><?= htmlspecialchars($local['local']) ?></option>
+                    <?php endforeach; ?>
+                </select>
 
                 <label class="app-label"><b>Data encontrada</b></label>
                 <input class="w3-input w3-border w3-margin-bottom app-input" type="date" name="data" id="editData" required>
@@ -152,11 +215,10 @@
             </header>
 
             <!-- O registro da devolução ao dono será feito com Prepared Statement futuramente -->
-            <form class="w3-container w3-padding-16" action="#" method="post">
+            <form class="w3-container w3-padding-16" action="" method="post">
+                <input type="hidden" name="acao" value="registrar_devolucao">
+                <input type="hidden" name="item_id" id="devItemId">
                 <p>Item: <b id="devNome"></b></p>
-
-                <label class="app-label"><b>Retirado por (nome do dono)</b></label>
-                <input class="w3-input w3-border w3-margin-bottom app-input" type="text" name="retirado_por" required>
 
                 <label class="app-label"><b>Data da retirada</b></label>
                 <input class="w3-input w3-border w3-margin-bottom app-input" type="date" name="data_retirada" required>
@@ -171,9 +233,10 @@
     <script>
         // Abre o modal de edição preenchendo os campos com os dados do botão clicado
         function abrirEditar(botao) {
+            document.getElementById('editItemId').value   = botao.dataset.itemId;
             document.getElementById('editNome').value      = botao.dataset.nome;
-            document.getElementById('editCategoria').value = botao.dataset.categoria;
-            document.getElementById('editLocal').value     = botao.dataset.local;
+            document.getElementById('editCategoria').value = botao.dataset.categoriaId;
+            document.getElementById('editLocal').value     = botao.dataset.localId;
             document.getElementById('editData').value      = botao.dataset.data;
             document.getElementById('editStatus').value    = botao.dataset.status;
             document.getElementById('editDescricao').value = botao.dataset.descricao;
@@ -182,6 +245,7 @@
 
         // Abre o modal de devolução mostrando o nome do item
         function abrirDevolucao(botao) {
+            document.getElementById('devItemId').value = botao.closest('tr').querySelector('[data-item-id]').dataset.itemId;
             document.getElementById('devNome').textContent = botao.dataset.nome;
             document.getElementById('modalDevolucao').style.display = 'block';
         }

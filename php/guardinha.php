@@ -7,14 +7,13 @@
      *
      * Cada usuário possui um nível de acesso:
      *   0 = Root            (acesso total)
-     *   1 = Direção
-     *   2 = Secretaria
-     *   3 = Aluno / Professor
+    *   1 = Secretaria
+    *   2 = Aluno / Professor / Funcionário
      *
      * Quanto MENOR o número, MAIOR o acesso.
      *
      * $nivelMinimo = nível máximo (número) permitido para abrir a página.
-     * Ex.: restricao(2) libera os níveis 0, 1 e 2 e bloqueia o nível 3.
+    * Ex.: restricao(1) libera os níveis 0 e 1 e bloqueia o nível 2.
      *
      * Observação: a página deve definir $rootPath ANTES de chamar restricao(),
      * pois o caminho até a raiz do projeto é usado nos redirecionamentos.
@@ -44,9 +43,8 @@
     function nivel_label($nivel){
         $niveis = [
             0 => 'Root',
-            1 => 'Direção',
-            2 => 'Secretaria',
-            3 => 'Aluno / Professor',
+            1 => 'Secretaria',
+            2 => 'Aluno / Professor / Funcionário',
         ];
         return $niveis[(int) $nivel] ?? 'Desconhecido';
     }

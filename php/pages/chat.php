@@ -4,45 +4,66 @@
     $rootPath = '../';
     $paginaAtiva = 'chat';
 
-    // Procurar item é liberado para todos os níveis (0 a 3)
-    restricao(3);
+    // Chat disponível para todos os níveis logados (0 a 2)
+    restricao(2);
 
-    require_once("../components/dados_mock.php");
+    require_once("../components/banco.php");
+    require_once("../components/ai.php");
 
-    $categorias = categorias_mock();
+    $con = conectar_banco();
+    $erroIa = '';
+    $respostaIa = '';
+    $mensagemUsuario = trim($_POST['mensagem'] ?? '');
 
-    // Lê os filtros enviados pelo formulário (método GET)
-    $filtroNome      = trim($_GET['nome'] ?? '');
-    $filtroCategoria = $_GET['categoria'] ?? '';
-    $filtroLocal     = trim($_GET['local'] ?? '');
-    $filtroData      = $_GET['data'] ?? '';
-
-    /*
-     * Aplica a busca sobre os dados mockados.
-     * Itens já "Entregue" não aparecem, pois não estão mais disponíveis.
-     * Quando houver banco, esta lógica vira um SELECT com Prepared Statement e
-     * cláusulas WHERE montadas a partir dos mesmos filtros.
-     */
-    $resultados = [];
-    foreach (itens_mock() as $item) {
-        if ($item['status'] === 'Entregue') {
-            continue;
-        }
-        // Cada filtro só restringe quando foi preenchido
-        if ($filtroNome !== '' && stripos($item['nome'], $filtroNome) === false) {
-            continue;
-        }
-        if ($filtroCategoria !== '' && $item['categoria'] !== $filtroCategoria) {
-            continue;
-        }
-        if ($filtroLocal !== '' && stripos($item['local_encontrado'], $filtroLocal) === false) {
-            continue;
-        }
-        if ($filtroData !== '' && $item['data_encontrado'] !== $filtroData) {
-            continue;
-        }
-        $resultados[] = $item;
+    if (!isset($_SESSION['chat_ia'])) {
+        $_SESSION['chat_ia'] = [];
     }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $mensagemUsuario !== '') {
+        $analise = ai_analisar_solicitacao_chat($mensagemUsuario);
+
+        if (!$analise['ok']) {
+            $erroIa = $analise['error'] ?? 'Não foi possível consultar a IA no momento.';
+            $respostaIa = 'O serviço de IA não está disponível no momento. Tente novamente mais tarde.';
+        } elseif (empty($analise['specific'])) {
+            $respostaIa = $analise['follow_up'] !== ''
+                ? $analise['follow_up']
+                : 'Preciso de mais detalhes concretos para procurar com segurança. Informe cor, marca, tipo ou outro detalhe.';
+        } else {
+            $termos = $analise['search_terms'];
+            if (empty($termos)) {
+                $termos = normalizar_termos_busca($mensagemUsuario);
+            }
+
+            $resultados = buscar_itens_disponiveis_por_termos($con, $termos, 5);
+
+            $contextoResposta = [
+                'specific' => true,
+                'query' => $mensagemUsuario,
+                'reason' => $analise['reason'] ?? '',
+                'match_count' => count($resultados),
+                'matches' => $resultados,
+                'instruction' => 'Responda com foco em orientar o usuário a procurar a secretaria. Não liste todo o banco.',
+            ];
+
+            $respostaFinal = ai_responder_chat($contextoResposta);
+            if ($respostaFinal['ok']) {
+                $respostaIa = trim((string) ($respostaFinal['content'] ?? ''));
+            } else {
+                if (empty($resultados)) {
+                    $respostaIa = 'Não encontrei um item compatível no banco no momento. Se puder, envie mais detalhes e vá à secretaria para confirmar presencialmente.';
+                } else {
+                    $respostaIa = 'Encontrei um possível item compatível no sistema. Vá até a secretaria para verificar presencialmente.';
+                }
+            }
+        }
+
+        $_SESSION['chat_ia'][] = ['role' => 'user', 'content' => $mensagemUsuario];
+        $_SESSION['chat_ia'][] = ['role' => 'assistant', 'content' => $respostaIa];
+        $_SESSION['chat_ia'] = array_slice($_SESSION['chat_ia'], -12);
+    }
+
+    $historico = $_SESSION['chat_ia'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -61,75 +82,44 @@
         </header>
 
         <div class="app-page-content w3-container w3-padding-32">
-
-            <!-- Formulário de busca -->
             <div class="w3-container w3-padding-16 app-card w3-margin-bottom">
-                <h4><b>Filtros de busca</b></h4>
-                <form action="" method="get">
-                    <div class="w3-row-padding">
-                        <div class="w3-quarter">
-                            <label class="app-label"><b>Nome</b></label>
-                            <input class="w3-input w3-border w3-margin-bottom app-input"
-                                   type="text" name="nome" value="<?= htmlspecialchars($filtroNome) ?>">
-                        </div>
-                        <div class="w3-quarter">
-                            <label class="app-label"><b>Categoria</b></label>
-                            <select class="w3-select w3-border w3-margin-bottom app-input" name="categoria">
-                                <option value="">Todas</option>
-                                <?php foreach ($categorias as $cat): ?>
-                                    <option value="<?= htmlspecialchars($cat) ?>"
-                                        <?= $filtroCategoria === $cat ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($cat) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="w3-quarter">
-                            <label class="app-label"><b>Local</b></label>
-                            <input class="w3-input w3-border w3-margin-bottom app-input"
-                                   type="text" name="local" value="<?= htmlspecialchars($filtroLocal) ?>">
-                        </div>
-                        <div class="w3-quarter">
-                            <label class="app-label"><b>Data encontrada</b></label>
-                            <input class="w3-input w3-border w3-margin-bottom app-input"
-                                   type="date" name="data" value="<?= htmlspecialchars($filtroData) ?>">
-                        </div>
-                    </div>
+                <h4><b>Chat com IA</b></h4>
+                <p class="w3-text-grey">Descreva o item com o máximo de detalhes possível. A IA só consulta o banco se a solicitação for específica o suficiente.</p>
 
-                    <button class="w3-button app-btn-primary" type="submit">Buscar</button>
-                    <a class="w3-button app-btn-secondary" href="chat.php">Limpar</a>
+                <form action="" method="post">
+                    <label class="app-label"><b>Mensagem</b></label>
+                    <textarea class="w3-input w3-border w3-margin-bottom app-input" name="mensagem" rows="4" placeholder="Ex.: carteira preta de couro com documento da Fatec..."><?= htmlspecialchars($mensagemUsuario) ?></textarea>
+                    <button class="w3-button app-btn-primary" type="submit">Enviar</button>
                 </form>
+
+                <?php if ($erroIa !== ''): ?>
+                    <p class="w3-small w3-text-red w3-margin-top"><?= htmlspecialchars($erroIa) ?></p>
+                <?php endif; ?>
             </div>
 
-            <!-- Resultados da busca -->
-            <h4><b>Resultados</b> <span class="w3-text-grey">(<?= count($resultados) ?>)</span></h4>
+            <div class="w3-container w3-padding-16 app-card">
+                <h4><b>Conversa</b></h4>
 
-            <?php if (empty($resultados)): ?>
-                <div class="w3-panel app-card w3-padding-16">
-                    <p>Nenhum item encontrado com os filtros informados.</p>
-                </div>
-            <?php else: ?>
-                <div class="w3-row-padding">
-                    <?php foreach ($resultados as $item): ?>
-                        <div class="w3-third w3-margin-bottom">
-                            <div class="w3-container w3-padding-16 app-card">
-                                <h5><b><?= htmlspecialchars($item['nome']) ?></b></h5>
-                                <p class="w3-margin-bottom-0">
-                                    <span class="w3-tag w3-round <?= classe_status($item['status']) ?>">
-                                        <?= htmlspecialchars($item['status']) ?>
-                                    </span>
-                                </p>
-                                <p class="w3-small w3-text-grey"><?= htmlspecialchars($item['categoria']) ?></p>
-                                <p><?= htmlspecialchars($item['descricao']) ?></p>
-                                <p class="w3-small">
-                                    <b>Local:</b> <?= htmlspecialchars($item['local_encontrado']) ?><br>
-                                    <b>Encontrado em:</b> <?= htmlspecialchars(date('d/m/Y', strtotime($item['data_encontrado']))) ?>
-                                </p>
-                            </div>
+                <?php if (empty($historico)): ?>
+                    <p class="w3-text-grey">Ainda não há mensagens.</p>
+                <?php else: ?>
+                    <?php foreach ($historico as $itemChat): ?>
+                        <div class="w3-margin-bottom">
+                            <?php if ($itemChat['role'] === 'user'): ?>
+                                <div class="w3-panel w3-rightbar w3-light-grey w3-padding-small">
+                                    <p class="w3-small w3-text-grey w3-margin-bottom-0"><b>Você</b></p>
+                                    <p class="w3-margin-bottom-0"><?= htmlspecialchars($itemChat['content']) ?></p>
+                                </div>
+                            <?php else: ?>
+                                <div class="w3-panel w3-leftbar w3-pale-green w3-padding-small">
+                                    <p class="w3-small w3-text-grey w3-margin-bottom-0"><b>IA</b></p>
+                                    <p class="w3-margin-bottom-0"><?= htmlspecialchars($itemChat['content']) ?></p>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
 
         </div>
 

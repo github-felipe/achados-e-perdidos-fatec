@@ -1,24 +1,22 @@
 <?php
     require_once("guardinha.php");
 
-    // Caminho até a raiz (esta página JÁ está na raiz do projeto)
     $rootPath = '';
     $paginaAtiva = 'dashboard';
 
-    // Dashboard é liberado para todos os níveis (0 a 3)
-    restricao(3);
+    // Painel liberado para qualquer usuário logado.
+    restricao(2);
 
-    // Carrega os dados de exemplo (serão substituídos por consultas ao banco depois)
-    require_once("components/dados_mock.php");
+    require_once("components/banco.php");
 
-    $itens    = itens_mock();
-    $usuarios = usuarios_mock();
+    $con = conectar_banco();
+    $resumo = resumo_painel($con);
+    $itens = itens_recentes($con, 5);
 
-    // Calcula as estatísticas exibidas nos cards
-    $itensDisponiveis = contar_itens_por_status($itens, 'Disponível');
-    $itensEntregues   = contar_itens_por_status($itens, 'Entregue');
-    $totalItens       = count($itens);
-    $totalUsuarios    = count($usuarios);
+    $itensDisponiveis = $resumo['itensDisponiveis'];
+    $itensEntregues   = $resumo['itensEntregues'];
+    $totalItens       = $resumo['totalItens'];
+    $totalUsuarios    = $resumo['totalUsuarios'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -87,13 +85,12 @@
                         <tbody>
                             <?php foreach ($itens as $item): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($item['nome']) ?></td>
+                                    <td><?= htmlspecialchars($item['item']) ?></td>
                                     <td><?= htmlspecialchars($item['categoria']) ?></td>
                                     <td><?= htmlspecialchars($item['local_encontrado']) ?></td>
-                                    <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['data_encontrado']))) ?></td>
+                                    <td><?= htmlspecialchars(date('d/m/Y', strtotime($item['data_cadastro']))) ?></td>
                                     <td>
-                                        <!-- A cor da etiqueta vem do helper classe_status() -->
-                                        <span class="w3-tag w3-round <?= classe_status($item['status']) ?>">
+                                        <span class="w3-tag w3-round <?= $item['status'] === 'Disponível' ? 'w3-green' : 'w3-blue' ?>">
                                             <?= htmlspecialchars($item['status']) ?>
                                         </span>
                                     </td>

@@ -4,15 +4,67 @@
     $rootPath = '../';
     $paginaAtiva = 'novo_item';
 
-    // Cadastrar item encontrado é liberado para todos os níveis (0 a 3)
-    restricao(3);
+    // Cadastrar item encontrado é liberado para todos os níveis (0 a 2)
+    restricao(2);
 
-    require_once("../components/dados_mock.php");
+    require_once("../components/banco.php");
 
-    $categorias = categorias_mock();
+    $con = conectar_banco();
+    $categorias = categorias_todas($con);
+    $locais = locais_todos($con);
+    $mensagem = '';
+    $erro = '';
 
     // Usuário responsável pelo cadastro = usuário logado
     $responsavel = $_SESSION['username'] ?? 'Usuário';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $nome = trim($_POST['nome'] ?? '');
+        $categoriaId = (int) ($_POST['categoria'] ?? 0);
+        $localId = (int) ($_POST['local_id'] ?? 0);
+        $data = trim($_POST['data'] ?? '');
+        $descricao = trim($_POST['descricao'] ?? '');
+
+        if ($nome === '' || $categoriaId <= 0 || $localId <= 0 || $data === '') {
+            $erro = 'Preencha os campos obrigatórios.';
+        } else {
+            mysqli_begin_transaction($con);
+
+            try {
+                $fotoId = null;
+                if (!empty($_FILES['foto']['name']) && ($_FILES['foto']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                    $imagem = inserir_imagem_upload_db($con, $_FILES['foto']);
+                    if (empty($imagem['ok'])) {
+                        throw new RuntimeException($imagem['error'] ?: 'Falha ao salvar a imagem.');
+                    }
+                    $fotoId = (int) $imagem['id'];
+                }
+
+                $resultadoItem = inserir_item_encontrado_db(
+                    $con,
+                    $nome,
+                    $descricao,
+                    $categoriaId,
+                    $localId,
+                    (int) ($_SESSION['id'] ?? 0),
+                    $fotoId,
+                    $data . ' 00:00:00'
+                );
+
+                if (empty($resultadoItem['ok'])) {
+                    throw new RuntimeException($resultadoItem['error'] ?? 'Falha ao salvar o item.');
+                }
+
+                mysqli_commit($con);
+                $_SESSION['msg'] = 'Item cadastrado com sucesso.';
+                header('location: novo_item.php');
+                exit;
+            } catch (Throwable $e) {
+                mysqli_rollback($con);
+                $erro = $e->getMessage();
+            }
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -35,12 +87,16 @@
                 <h4><b>Cadastrar item encontrado</b></h4>
                 <p class="w3-text-grey">Preencha os dados do objeto que você encontrou.</p>
 
-                <!--
-                    enctype="multipart/form-data" é necessário para envio de imagem.
-                    O upload será validado (tipo e tamanho) e gravado via Prepared
-                    Statement quando o banco de dados estiver pronto.
-                -->
-                <form action="#" method="post" enctype="multipart/form-data">
+                <?php if (!empty($_SESSION['msg'])): ?>
+                    <div class="app-alert-success w3-margin-bottom"><?= htmlspecialchars($_SESSION['msg']) ?></div>
+                    <?php $_SESSION['msg'] = ''; ?>
+                <?php endif; ?>
+
+                <?php if ($erro !== ''): ?>
+                    <div class="app-alert-error w3-margin-bottom"><?= htmlspecialchars($erro) ?></div>
+                <?php endif; ?>
+
+                <form action="" method="post" enctype="multipart/form-data">
                     <div class="w3-row-padding">
                         <div class="w3-half">
                             <label class="app-label"><b>Nome do objeto</b></label>
@@ -51,7 +107,7 @@
                             <select class="w3-select w3-border w3-margin-bottom app-input" name="categoria" required>
                                 <option value="" disabled selected>Selecione...</option>
                                 <?php foreach ($categorias as $cat): ?>
-                                    <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
+                                    <option value="<?= (int) $cat['id'] ?>"><?= htmlspecialchars($cat['descricao']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -60,7 +116,12 @@
                     <div class="w3-row-padding">
                         <div class="w3-half">
                             <label class="app-label"><b>Local encontrado</b></label>
-                            <input class="w3-input w3-border w3-margin-bottom app-input" type="text" name="local" required>
+                            <select class="w3-select w3-border w3-margin-bottom app-input" name="local_id" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <?php foreach ($locais as $local): ?>
+                                    <option value="<?= (int) $local['id'] ?>"><?= htmlspecialchars($local['local']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="w3-half">
                             <label class="app-label"><b>Data encontrada</b></label>
@@ -79,7 +140,7 @@
                     <input class="w3-input w3-border w3-margin-bottom app-input"
                            type="text" value="<?= htmlspecialchars($responsavel) ?>" disabled>
 
-                    <button class="w3-button app-btn-primary w3-margin-top" type="submit">
+                    <button class="w3-button app-btn-primary w3-margin-top" type="submit" name="acao" value="cadastrar_item">
                         Cadastrar item
                     </button>
                 </form>

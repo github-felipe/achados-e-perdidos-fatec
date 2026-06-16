@@ -10,8 +10,8 @@
         ['id' => 'novo_item',  'label' => 'Encontrei um item', 'href' => $rootPath . 'pages/novo_item.php'],
     ];
 
-    // Links administrativos: liberados apenas para Root (0), Direção (1) e Secretaria (2)
-    if (isset($_SESSION['nivel']) && (int) $_SESSION['nivel'] <= 2) {
+    // Links administrativos: liberados apenas para Root (0) e Secretaria (1)
+    if (isset($_SESSION['nivel']) && (int) $_SESSION['nivel'] <= 1) {
         array_splice($links, 1, 0, [
             ['id' => 'itens',    'label' => 'Gerenciar itens',    'href' => $rootPath . 'pages/itens.php'],
             ['id' => 'cadastro', 'label' => 'Cadastrar usuário',  'href' => $rootPath . 'pages/cadastro.php'],
@@ -19,7 +19,7 @@
     }
 
     $username = $_SESSION['username'] ?? 'Usuário';
-    $cargo    = isset($_SESSION['nivel']) ? nivel_label($_SESSION['nivel']) : '';
+    $cargo    = $_SESSION['perfil'] ?? (isset($_SESSION['nivel']) ? nivel_label($_SESSION['nivel']) : '');
 ?>
 
 <!-- Sidebar (menu lateral fixo no desktop / recolhível no mobile) -->
