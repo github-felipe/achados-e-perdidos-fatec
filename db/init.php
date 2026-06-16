@@ -160,9 +160,7 @@ try {
         ('Estacionamento'),
         ('Escadas'),
         ('Escadas de emergência'),
-        ('Elevador'),
-        ('Armário Principal da Secretaria'),
-        ('Achados e Perdidos - Bloco A'),
+        ('Elevador')
         ('Guarita de Segurança');
     SQL;
 
