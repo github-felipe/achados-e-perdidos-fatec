@@ -94,6 +94,7 @@
                     <table class="w3-table w3-bordered w3-striped fatec-table">
                         <thead>
                             <tr>
+                                <th>Foto</th>
                                 <th>Item</th>
                                 <th>Categoria</th>
                                 <th>Local</th>
@@ -105,6 +106,9 @@
                         <tbody>
                             <?php foreach ($itens as $item): ?>
                                 <tr>
+                                    <td>
+                                        <?php $fotoId = $item['foto_id'] ?? 0; require('../components/thumb_item.php'); ?>
+                                    </td>
                                     <td><?= htmlspecialchars($item['item']) ?></td>
                                     <td><?= htmlspecialchars($item['categoria']) ?></td>
                                     <td><?= htmlspecialchars($item['local_encontrado']) ?></td>
@@ -115,10 +119,7 @@
                                         </span>
                                     </td>
                                     <td class="w3-center">
-                                        <!--
-                                            Os dados do item ficam em atributos data-* e são lidos
-                                            pelo JavaScript para preencher os modais ao clicar.
-                                        -->
+                                        
                                         <button class="w3-button w3-small app-btn-secondary"
                                                 onclick="abrirEditar(this)"
                                             data-item-id="<?= (int) $item['id'] ?>"
@@ -139,7 +140,7 @@
                                             </button>
                                         <?php endif; ?>
 
-                                        <!-- Exclusão pede confirmação antes (mockado) -->
+                                
                                         <button class="w3-button w3-small w3-red"
                                                 onclick="confirmarExclusao('<?= htmlspecialchars($item['item'], ENT_QUOTES) ?>')">
                                             Excluir
@@ -156,7 +157,6 @@
         <?php require_once("../components/footer.php"); ?>
     </div>
 
-    <!-- ───────────── Modal: Editar item ───────────── -->
     <div id="modalEditar" class="w3-modal">
         <div class="w3-modal-content w3-card-4 w3-animate-top" style="max-width:600px">
             <header class="w3-container app-page-header">
@@ -206,7 +206,7 @@
         </div>
     </div>
 
-    <!-- ─────────────── Modal: Registrar devolução ─────────────── -->
+    <!-- Modal: Registrar devolução  -->
     <div id="modalDevolucao" class="w3-modal">
         <div class="w3-modal-content w3-card-4 w3-animate-top" style="max-width:500px">
             <header class="w3-container app-page-header">
@@ -259,7 +259,7 @@
             document.getElementById('modalDevolucao').style.display = 'block';
         }
 
-        // Confirmação simples antes de excluir (mockado)
+        // Confirmação simples antes de excluir
         function confirmarExclusao(nome) {
             if (confirm('Deseja realmente excluir o item "' + nome + '"?')) {
                 alert('Exclusão será implementada com o banco de dados.');

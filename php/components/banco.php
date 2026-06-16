@@ -56,6 +56,7 @@ function itens_recentes($con, int $limite = 5): array
     $sql = "
         SELECT
             i.id,
+            i.foto_id,
             i.categoria_id,
             i.local_id,
             i.descricao AS item,
@@ -332,6 +333,35 @@ function formatar_descricao_item(string $nome, string $descricao): string
     }
 
     return $nome . ' — ' . $descricao;
+}
+
+function imagem_por_id($con, int $id): ?array
+{
+    $id = (int) $id;
+    if ($id <= 0) {
+        return null;
+    }
+
+    $sql = "SELECT tipo_mime, imagem, tamanho FROM imagens WHERE id = ? LIMIT 1";
+    $stmt = mysqli_stmt_init($con);
+    if (!mysqli_stmt_prepare($stmt, $sql)) {
+        return null;
+    }
+
+    mysqli_stmt_bind_param($stmt, 'i', $id);
+    mysqli_stmt_execute($stmt);
+    $resultado = mysqli_stmt_get_result($stmt);
+    $linha = $resultado ? mysqli_fetch_assoc($resultado) : null;
+
+    if (!$linha) {
+        return null;
+    }
+
+    return [
+        'tipo_mime' => (string) $linha['tipo_mime'],
+        'conteudo'  => $linha['imagem'],
+        'tamanho'   => (int) $linha['tamanho'],
+    ];
 }
 
 function inserir_imagem_upload_db($con, array $arquivo): array

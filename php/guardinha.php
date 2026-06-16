@@ -14,9 +14,6 @@
      *
      * $nivelMinimo = nível máximo (número) permitido para abrir a página.
     * Ex.: restricao(1) libera os níveis 0 e 1 e bloqueia o nível 2.
-     *
-     * Observação: a página deve definir $rootPath ANTES de chamar restricao(),
-     * pois o caminho até a raiz do projeto é usado nos redirecionamentos.
      */
     function restricao(int $nivelMinimo){
         // Caminho até a raiz do projeto (ex.: '' na raiz, '../' dentro de pages/)

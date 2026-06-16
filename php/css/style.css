@@ -1,9 +1,4 @@
 /*
- * style.css — Identidade visual Fatec (Achados e Perdidos)
- *
- * Complementa o W3.CSS com as cores institucionais e componentes do sistema.
- * Para alterar o visual, edite apenas as variáveis em :root.
- *
  * Índice:
  *   1. Variáveis de cor    → paleta institucional centralizada
  *   2. Base da página      → fundo e cor de texto padrão
@@ -238,6 +233,14 @@
 /* Destaque suave na linha sob o cursor */
 .fatec-table tr:hover {
     background-color: #fafafa;
+}
+
+.app-item-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
 }
 
 

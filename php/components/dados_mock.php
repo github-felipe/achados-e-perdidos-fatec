@@ -1,15 +1,4 @@
 <?php
-/*
- * dados_mock.php — Dados de exemplo (mock) do sistema.
- *
- * ATENÇÃO: arquivo TEMPORÁRIO. Enquanto o banco de dados MySQL não está pronto,
- * estas funções devolvem dados fixos para que as telas possam ser construídas e
- * apresentadas. Quando o banco existir, basta trocar o conteúdo destas funções
- * por consultas com Prepared Statements, mantendo o mesmo formato de retorno.
- *
- * As funções têm proteção (function_exists) para que o arquivo possa ser
- * incluído mais de uma vez sem causar erro de "função já declarada".
- */
 
 if (!function_exists('categorias_mock')) {
     // Lista de categorias usada nos selects de Novo Item e Procurar Item
