@@ -45,11 +45,12 @@
         if ($acao === 'registrar_devolucao') {
             $itemId = (int) ($_POST['item_id'] ?? 0);
             $dataRetirada = trim($_POST['data_retirada'] ?? '');
+            $nomeRetirou = trim($_POST['nome_retirou'] ?? '');
 
-            if ($itemId <= 0 || $dataRetirada === '') {
-                $erro = 'Informe o item e a data da retirada.';
+            if ($itemId <= 0 || $dataRetirada === '' || $nomeRetirou === '') {
+                $erro = 'Informe o item, a data da retirada e o nome de quem está retirando.';
             } else {
-                $resultado = registrar_devolucao_item_db($con, $itemId, (int) ($_SESSION['id'] ?? 0), $dataRetirada . ' 00:00:00');
+                $resultado = registrar_devolucao_item_db($con, $itemId, (int) ($_SESSION['id'] ?? 0), $dataRetirada . ' 00:00:00', $nomeRetirou);
                 if (!empty($resultado['ok'])) {
                     $_SESSION['msg'] = 'Devolução registrada com sucesso.';
                     header('location: itens.php');
@@ -205,7 +206,7 @@
         </div>
     </div>
 
-    <!-- ───────────── Modal: Registrar devolução ───────────── -->
+    <!-- ─────────────── Modal: Registrar devolução ─────────────── -->
     <div id="modalDevolucao" class="w3-modal">
         <div class="w3-modal-content w3-card-4 w3-animate-top" style="max-width:500px">
             <header class="w3-container app-page-header">
@@ -214,11 +215,19 @@
                 <h3><b>Registrar devolução</b></h3>
             </header>
 
-            <!-- O registro da devolução ao dono será feito com Prepared Statement futuramente -->
             <form class="w3-container w3-padding-16" action="" method="post">
                 <input type="hidden" name="acao" value="registrar_devolucao">
                 <input type="hidden" name="item_id" id="devItemId">
                 <p>Item: <b id="devNome"></b></p>
+
+                <label class="app-label"><b>Entregue por (funcionário)</b></label>
+                <input class="w3-input w3-border w3-margin-bottom app-input"
+                       type="text" value="<?= htmlspecialchars($_SESSION['username'] ?? '') ?>" disabled>
+
+                <label class="app-label"><b>Nome de quem está retirando *</b></label>
+                <input class="w3-input w3-border w3-margin-bottom app-input"
+                       type="text" name="nome_retirou" id="devNomeRetirou"
+                       placeholder="Nome completo do reclamante" required>
 
                 <label class="app-label"><b>Data da retirada</b></label>
                 <input class="w3-input w3-border w3-margin-bottom app-input" type="date" name="data_retirada" required>

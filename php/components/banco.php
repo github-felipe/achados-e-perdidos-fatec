@@ -426,15 +426,15 @@ function atualizar_item_encontrado_db($con, int $id, string $nome, string $descr
     return ['ok' => true];
 }
 
-function registrar_devolucao_item_db($con, int $itemId, int $usuarioId, string $dataRetirada): array
+function registrar_devolucao_item_db($con, int $itemId, int $usuarioId, string $dataRetirada, string $nomeRetirou): array
 {
-    $sql = "UPDATE itens SET data_retirada = ?, retirou_id = ? WHERE id = ? AND data_retirada IS NULL";
+    $sql = "UPDATE itens SET data_retirada = ?, retirou_id = ?, nome_retirou = ? WHERE id = ? AND data_retirada IS NULL";
     $stmt = mysqli_stmt_init($con);
     if (!mysqli_stmt_prepare($stmt, $sql)) {
         return ['ok' => false, 'error' => 'Falha ao preparar devolução.'];
     }
 
-    mysqli_stmt_bind_param($stmt, 'sii', $dataRetirada, $usuarioId, $itemId);
+    mysqli_stmt_bind_param($stmt, 'sisi', $dataRetirada, $usuarioId, $nomeRetirou, $itemId);
     if (!mysqli_stmt_execute($stmt) || mysqli_stmt_affected_rows($stmt) === 0) {
         return ['ok' => false, 'error' => 'Não foi possível registrar a devolução.'];
     }

@@ -70,6 +70,7 @@ try {
         recebeu_id INT,
         data_retirada DATETIME,
         retirou_id INT,
+        nome_retirou VARCHAR(100),
 
         CONSTRAINT fk_item_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL,
         CONSTRAINT fk_item_foto FOREIGN KEY (foto_id) REFERENCES imagens(id) ON DELETE SET NULL,
@@ -94,7 +95,19 @@ try {
         (2, 'Professor'),
         (2, 'Funcionário');
 
-    INSERT INTO categorias (descricao) VALUES ('Eletrônicos'), ('Documentos'), ('Vestuário'), ('Material Acadêmico/Escolar');
+    INSERT INTO categorias (descricao) VALUES
+        ('Eletrônicos'),
+        ('Documentos e Carteiras'),
+        ('Vestuário'),
+        ('Calçados'),
+        ('Material Acadêmico/Escolar'),
+        ('Bolsas e Mochilas'),
+        ('Acessórios'),
+        ('Chaves'),
+        ('Óculos'),
+        ('Esportes e Lazer'),
+        ('Instrumentos Musicais'),
+        ('Outros');
     INSERT INTO locais (local) VALUES
         ('Sala I'),
         ('Sala II'),
@@ -158,7 +171,7 @@ try {
     $senhaHash = hashsenha('senha123');
     
     // Adicionar usuários padrão
-    $sqlUsuarios = <<<'SQL'
+    $sqlUsuarios = <<<SQL
     INSERT INTO users (nome, email, senha, nivel_id, status) VALUES
         ('Secretaria', 'f288acad@cps.sp.gov.br', '{$senhaHash}', 2, 'ativo'),
         ('Leonardo Ferrucci', 'leonardo.ferrucci@cps.sp.gov.br', '{$senhaHash}', 4, 'ativo'),
