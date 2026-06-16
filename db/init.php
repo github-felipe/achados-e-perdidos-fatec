@@ -170,7 +170,7 @@ try {
 
     // Gerar hashes de senha para usuários padrão
     $senhaHash = hashsenha('senha123');
-    
+
     // Adicionar usuários padrão
     $sqlUsuarios = <<<SQL
     INSERT INTO users (nome, email, senha, nivel_id, status) VALUES
@@ -180,7 +180,7 @@ try {
         ('Felipe Lima', 'felipe.lima3@aluno.cps.sp.gov.br', '{$senhaHash}', 3, 'ativo'),
         ('Funcionário Fatec', 'funcionario.fatec@gmail.com', '{$senhaHash}', 5, 'ativo');
     SQL;
-    
+
     $pdo->exec($sqlUsuarios);
 
     // Itens de teste para demonstração do sistema

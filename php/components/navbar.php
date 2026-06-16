@@ -2,7 +2,7 @@
     $rootPath = $rootPath ?? '';
     $paginaAtiva = $paginaAtiva ?? '';
 
-    // Links disponíveis para TODOS os níveis de acesso
+    // Links disponíveis para todos os níveis de acesso
     $links = [
         ['id' => 'dashboard',  'label' => 'Dashboard',         'href' => $rootPath . 'index.php'],
         ['id' => 'perfil',     'label' => 'Perfil',            'href' => $rootPath . 'pages/perfil.php'],
