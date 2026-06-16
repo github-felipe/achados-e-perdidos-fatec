@@ -11,12 +11,14 @@
     require_once("../components/ai.php");
 
     $con = conectar_banco();
+    $usuarioId = (int) ($_SESSION['id'] ?? 0);
     $erroIa = '';
     $respostaIa = '';
     $mensagemUsuario = trim($_POST['mensagem'] ?? '');
 
+    // Carrega as últimas 12 mensagens do banco para manter contexto na sessão
     if (!isset($_SESSION['chat_ia'])) {
-        $_SESSION['chat_ia'] = [];
+        $_SESSION['chat_ia'] = carregar_historico_chat_db($con, $usuarioId, 12);
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && $mensagemUsuario !== '') {
@@ -38,11 +40,11 @@
             $resultados = buscar_itens_disponiveis_por_termos($con, $termos, 5);
 
             $contextoResposta = [
-                'specific' => true,
-                'query' => $mensagemUsuario,
-                'reason' => $analise['reason'] ?? '',
+                'specific'    => true,
+                'query'       => $mensagemUsuario,
+                'reason'      => $analise['reason'] ?? '',
                 'match_count' => count($resultados),
-                'matches' => $resultados,
+                'matches'     => $resultados,
                 'instruction' => 'Responda com foco em orientar o usuário a procurar a secretaria. Não liste todo o banco.',
             ];
 
@@ -58,12 +60,18 @@
             }
         }
 
-        $_SESSION['chat_ia'][] = ['role' => 'user', 'content' => $mensagemUsuario];
-        $_SESSION['chat_ia'][] = ['role' => 'assistant', 'content' => $respostaIa];
+        // Persiste no banco de dados
+        salvar_mensagem_db($con, $usuarioId, 'user',      $mensagemUsuario);
+        salvar_mensagem_db($con, $usuarioId, 'assistant', $respostaIa);
+
+        // Atualiza o buffer de contexto da sessão
+        $_SESSION['chat_ia'][] = ['role' => 'user',      'content' => $mensagemUsuario];
+        $_SESSION['chat_ia'][] = ['role' => 'assistant',  'content' => $respostaIa];
         $_SESSION['chat_ia'] = array_slice($_SESSION['chat_ia'], -12);
     }
 
-    $historico = $_SESSION['chat_ia'];
+    // Histórico completo vem do banco (últimas 50 mensagens, ordem cronológica)
+    $historico = carregar_historico_chat_db($con, $usuarioId, 50);
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">

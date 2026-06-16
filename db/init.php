@@ -82,6 +82,7 @@ try {
 
     CREATE TABLE mensagens (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        role VARCHAR(20) NOT NULL DEFAULT 'user',
         mensagem TEXT NOT NULL,
         data DATETIME DEFAULT CURRENT_TIMESTAMP,
         id_usuario INT,
@@ -181,6 +182,26 @@ try {
     SQL;
     
     $pdo->exec($sqlUsuarios);
+
+    // Itens de teste para demonstração do sistema
+    $sqlItens = <<<'SQL'
+    INSERT INTO itens (descricao, categoria_id, local_id, data_cadastro, cadastrou_id) VALUES
+        ('Carregador de notebook Dell 65W — cabo enrolado com elástico', 1, 28, '2026-06-10 08:30:00', 2),
+        ('Carteira de couro preta — com documentos e cartões dentro', 2, 32, '2026-06-11 10:15:00', 2),
+        ('Garrafa térmica azul Stanley 500ml', 11, 34, '2026-06-11 13:45:00', 5),
+        ('Óculos de grau — armação preta fina com estojo marrom', 9, 1, '2026-06-12 09:00:00', 2),
+        ('Caderno universitário 10 matérias — capa vermelha com foto do gabriel medina nas olimpíadas na frente', 5, 5, '2026-06-12 14:20:00', 4),
+        ('Molho de chaves — três chaves e um chaveiro da Fatec', 8, 48, '2026-06-13 07:50:00', 5),
+        ('Guarda-chuva preto dobrável — cabo de madeira', 10, 35, '2026-06-13 16:30:00', 2),
+        ('Fone de ouvido Bluetooth branco — sem case', 1, 21, '2026-06-14 11:00:00', 3),
+        ('Mochila preta com zíper vermelho — tag com nome Leonardo', 6, 26, '2026-06-14 15:10:00', 2),
+        ('Capa de chuva amarela tamanho M — dobrada em embalagem original', 10, 49, '2026-06-15 08:45:00', 5);
+    SQL;
+
+    $pdo->exec($sqlItens);
+
+    // Registrar a devolução do item 9 (mochila) como exemplo de item já entregue
+    $pdo->exec("UPDATE itens SET data_retirada = '2026-06-15 10:00:00', retirou_id = 2, nome_retirou = 'Leonardo Ferrucci' WHERE id = 9");
 
     $sqlProcedure = <<<'SQL'
     CREATE PROCEDURE sp_registrar_retirada_item(

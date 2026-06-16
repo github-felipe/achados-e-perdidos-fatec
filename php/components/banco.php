@@ -533,3 +533,46 @@ function buscar_itens_disponiveis_por_termos($con, array $termos, int $limite = 
 
     return $itens;
 }
+
+function salvar_mensagem_db($con, int $usuarioId, string $role, string $mensagem): void
+{
+    $sql = "INSERT INTO mensagens (role, mensagem, id_usuario) VALUES (?, ?, ?)";
+    $stmt = mysqli_stmt_init($con);
+    if (!mysqli_stmt_prepare($stmt, $sql)) {
+        return;
+    }
+    mysqli_stmt_bind_param($stmt, 'ssi', $role, $mensagem, $usuarioId);
+    mysqli_stmt_execute($stmt);
+}
+
+function carregar_historico_chat_db($con, int $usuarioId, int $limite = 50): array
+{
+    $limite = max(1, (int) $limite);
+    $sql = "
+        SELECT role, mensagem AS content
+        FROM mensagens
+        WHERE id_usuario = ?
+        ORDER BY id DESC
+        LIMIT {$limite}
+    ";
+    $stmt = mysqli_stmt_init($con);
+    if (!mysqli_stmt_prepare($stmt, $sql)) {
+        return [];
+    }
+    mysqli_stmt_bind_param($stmt, 'i', $usuarioId);
+    mysqli_stmt_execute($stmt);
+    $resultado = mysqli_stmt_get_result($stmt);
+
+    $mensagens = [];
+    if ($resultado) {
+        while ($linha = mysqli_fetch_assoc($resultado)) {
+            $mensagens[] = [
+                'role'    => $linha['role'],
+                'content' => $linha['content'],
+            ];
+        }
+    }
+
+    // Retorna em ordem cronológica (mais antigas primeiro)
+    return array_reverse($mensagens);
+}
