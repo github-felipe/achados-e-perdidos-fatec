@@ -160,7 +160,7 @@ try {
         ('Estacionamento'),
         ('Escadas'),
         ('Escadas de emergência'),
-        ('Elevador')
+        ('Elevador'),
         ('Guarita de Segurança');
     SQL;
 
