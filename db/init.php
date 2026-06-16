@@ -173,6 +173,7 @@ try {
     // Adicionar usuários padrão
     $sqlUsuarios = <<<SQL
     INSERT INTO users (nome, email, senha, nivel_id, status) VALUES
+        ('Admin', 'admin@sistema.com', '{$senhaHash}', 1, 'ativo'),
         ('Secretaria', 'f288acad@cps.sp.gov.br', '{$senhaHash}', 2, 'ativo'),
         ('Leonardo Ferrucci', 'leonardo.ferrucci@cps.sp.gov.br', '{$senhaHash}', 4, 'ativo'),
         ('Felipe Lima', 'felipe.lima3@aluno.cps.sp.gov.br', '{$senhaHash}', 3, 'ativo'),
